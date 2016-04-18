@@ -107,6 +107,8 @@ class GameState(object):
             A list of players who died in this update step.
 
         TODO: only check if the local player died and return a boolean.
+        TODO: check collision only with the last frame's movement, not the
+            whole last leg.
         """
         cur_time = time.time()
 
