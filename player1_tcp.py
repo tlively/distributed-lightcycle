@@ -28,28 +28,28 @@ start_msg.proto_version = 1
 
 # Accept everyone's connections
 for i in range(numplayers-1):
-	conn, addr = s.accept()
-	conn.setblocking(0)
-	player_sockets[str(i+2)] = conn
-	# Set up the start message for this player and send
-	start_msg.player_no = i + 2
-	conn.send(start_msg.SerializeToString())
-	# Update the rest of the info to add in this player
-	player_ip = start_msg.players.add()
-	player_ip.IP = addr[0]
-	player_ip.player_no = i + 2
-	player_sockets[str(i+2)] = conn
-	
+    conn, addr = s.accept()
+    conn.setblocking(0)
+    player_sockets[str(i+2)] = conn
+    # Set up the start message for this player and send
+    start_msg.player_no = i + 2
+    conn.send(start_msg.SerializeToString())
+    # Update the rest of the info to add in this player
+    player_ip = start_msg.players.add()
+    player_ip.IP = addr[0]
+    player_ip.player_no = i + 2
+    player_sockets[str(i+2)] = conn
+        
 s.close()
 
 msg = pb.PlayerIP()
 
 while (1):
-	for info in player_sockets.items():
-		try:
-			data = info[1].recv(BUFFERSIZE)
-			if data:
-				msg.ParseFromString(data)
-				print(msg)
-		except IOError:
-			continue
+    for info in player_sockets.items():
+        try:
+            data = info[1].recv(BUFFERSIZE)
+            if data:
+                msg.ParseFromString(data)
+                print(msg)
+        except IOError:
+            continue

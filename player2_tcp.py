@@ -10,11 +10,11 @@ numplayers = 3
 
 # Ensure proper usage
 def usage_error():
-	print("Usage: python main.py [IP] [port]")
-	sys.exit()
+    print("Usage: python main.py [IP] [port]")
+    sys.exit()
 
 if (len(sys.argv) != 3):
-        usage_error()
+    usage_error()
 
 try:
     PORT = int(sys.argv[2])
@@ -47,18 +47,18 @@ s.bind((gethostbyname(gethostname()), PORT + me))
 s.listen(numplayers-me)
 
 for i in range(me, numplayers):
-	conn, addr = s.accept()
-	conn.setblocking(0)
-	player_sockets[str(i+1)] = conn
+    conn, addr = s.accept()
+    conn.setblocking(0)
+    player_sockets[str(i+1)] = conn
 
 s.close()
 
 for player in player_data.players:
-	s = socket(AF_INET, SOCK_STREAM)
-	s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-	s.connect((player.IP, PORT + player.player_no))
-	s.setblocking(0)
-	player_sockets[str(player.player_no)] = s
+    s = socket(AF_INET, SOCK_STREAM)
+    s.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
+    s.connect((player.IP, PORT + player.player_no))
+    s.setblocking(0)
+    player_sockets[str(player.player_no)] = s
 
 myinfo = pb.PlayerIP()
 myinfo.player_no = me
@@ -66,18 +66,18 @@ myinfo.IP = gethostbyname(gethostname())
 confirmMsg = myinfo.SerializeToString()
 
 for info in player_sockets.items():
-	info[1].send(confirmMsg)
+    info[1].send(confirmMsg)
 
 msg = pb.PlayerIP()
 
 while (1):
-	for info in player_sockets.items():
-		try:
-			data = info[1].recv(BUFFERSIZE)
-			if data:
-				msg.ParseFromString(data)
-				print(msg)
-		except IOError:
-			continue
+    for info in player_sockets.items():
+        try:
+            data = info[1].recv(BUFFERSIZE)
+            if data:
+                msg.ParseFromString(data)
+                print(msg)
+        except IOError:
+            continue
 
 print(player_data)
