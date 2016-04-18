@@ -1,0 +1,12 @@
+package Player;
+
+message PlayerIP {
+	required uint32 player_no = 1;
+	required string IP = 2;
+}
+
+message StartMsg {
+	required uint32 proto_version = 1;
+	required uint32 player_no = 2;
+	repeated PlayerIP players = 3;
+}
