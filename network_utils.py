@@ -7,6 +7,23 @@ N_PLAYERS = 4
 PORT = 2620
 LOCAL_ADDR = sock.gethostbyname(sock.gethostname())
 
+class SelfLoopSocket(object):
+    def __init__(self):
+        self.msgs = ''
+
+    def send(self, msg):
+        self.msgs += msg
+
+    def recv(self, buf_len):
+        if buf_len < len(self.msgs):
+            buf = self.msgs[:buf_len]
+            self.msgs = self.msgs[buf_len:]
+            return buf
+        else:
+            buf = self.msgs
+            self.msgs = ''
+            return buf
+
 def establish_tcp_connections(host_ip):
     """
     Connect to `host_ip' and establish the fully connected network
@@ -63,6 +80,8 @@ def establish_tcp_connections(host_ip):
         player_socks[msg.player_no] = conn
         player_addrs[msg.player_no] = addr[0]
 
+    listener.close()
+
     # connect to other players
     for p in range(1, local_player):
         p_sock = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
@@ -80,12 +99,8 @@ def establish_tcp_connections(host_ip):
         player_socks[p] = p_sock
 
     # create self loop
-    self_sock = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
-    self_sock.setsockopt(sock.SOL_SOCKET, sock.SO_REUSEADDR, 1)
-    self_sock.connect((LOCAL_ADDR, PORT + local_player))
-    listener.accept()
     player_addrs[local_player] = LOCAL_ADDR
-    player_socks[local_player] = self_sock
+    player_socks[local_player] = SelfLoopSocket()
 
     return (local_player, player_socks, player_addrs)
 
@@ -125,13 +140,11 @@ def coordinate_tcp_connections():
         player_socks[i] = conn
         player_addrs[i] = addr
 
+    listener.close()
+
     # create self loop
-    self_sock = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
-    self_sock.setsockopt(sock.SOL_SOCKET, sock.SO_REUSEADDR, 1)
-    self_sock.connect((LOCAL_ADDR, PORT))
-    listener.accept()
     player_addrs[0] = LOCAL_ADDR
-    player_socks[0] = self_sock
+    player_socks[0] = SelfLoopSocket()
 
     return (0, player_socks, player_addrs)
 
