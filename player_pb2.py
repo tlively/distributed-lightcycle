@@ -18,67 +18,11 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='player.proto',
   package='Player',
-  serialized_pb=_b('\n\x0cplayer.proto\x12\x06Player\")\n\x08PlayerIP\x12\x11\n\tplayer_no\x18\x01 \x02(\r\x12\n\n\x02IP\x18\x02 \x02(\t\"W\n\x08StartMsg\x12\x15\n\rproto_version\x18\x01 \x02(\r\x12\x11\n\tplayer_no\x18\x02 \x02(\r\x12!\n\x07players\x18\x03 \x03(\x0b\x32\x10.Player.PlayerIP\"\x96\x02\n\x07GameMsg\x12&\n\x05mtype\x18\x01 \x02(\x0e\x32\x17.Player.GameMsg.MsgType\x12\x11\n\tplayer_no\x18\x02 \x02(\r\x12%\n\x03pos\x18\x03 \x01(\x0b\x32\x18.Player.GameMsg.Position\x12&\n\x03\x64ir\x18\x04 \x01(\x0e\x32\x19.Player.GameMsg.Direction\x1a \n\x08Position\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02\"(\n\x07MsgType\x12\t\n\x05START\x10\x00\x12\x08\n\x04MOVE\x10\x01\x12\x08\n\x04KILL\x10\x02\"5\n\tDirection\x12\x08\n\x04\x45\x41ST\x10\x00\x12\t\n\x05NORTH\x10\x01\x12\x08\n\x04WEST\x10\x02\x12\t\n\x05SOUTH\x10\x03')
+  serialized_pb=_b('\n\x0cplayer.proto\x12\x06Player\")\n\x08PlayerIP\x12\x11\n\tplayer_no\x18\x01 \x02(\r\x12\n\n\x02IP\x18\x02 \x02(\t\"W\n\x08StartMsg\x12\x15\n\rproto_version\x18\x01 \x02(\r\x12\x11\n\tplayer_no\x18\x02 \x02(\r\x12!\n\x07players\x18\x03 \x03(\x0b\x32\x10.Player.PlayerIP\"\x81\x01\n\x07GameMsg\x12\r\n\x05mtype\x18\x01 \x02(\r\x12\x11\n\tplayer_no\x18\x02 \x02(\r\x12%\n\x03pos\x18\x03 \x01(\x0b\x32\x18.Player.GameMsg.Position\x12\x0b\n\x03\x64ir\x18\x04 \x01(\r\x1a \n\x08Position\x12\t\n\x01x\x18\x01 \x02(\x02\x12\t\n\x01y\x18\x02 \x02(\x02')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
-
-_GAMEMSG_MSGTYPE = _descriptor.EnumDescriptor(
-  name='MsgType',
-  full_name='Player.GameMsg.MsgType',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='START', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='MOVE', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='KILL', index=2, number=2,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=340,
-  serialized_end=380,
-)
-_sym_db.RegisterEnumDescriptor(_GAMEMSG_MSGTYPE)
-
-_GAMEMSG_DIRECTION = _descriptor.EnumDescriptor(
-  name='Direction',
-  full_name='Player.GameMsg.Direction',
-  filename=None,
-  file=DESCRIPTOR,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='EAST', index=0, number=0,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='NORTH', index=1, number=1,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='WEST', index=2, number=2,
-      options=None,
-      type=None),
-    _descriptor.EnumValueDescriptor(
-      name='SOUTH', index=3, number=3,
-      options=None,
-      type=None),
-  ],
-  containing_type=None,
-  options=None,
-  serialized_start=382,
-  serialized_end=435,
-)
-_sym_db.RegisterEnumDescriptor(_GAMEMSG_DIRECTION)
 
 
 _PLAYERIP = _descriptor.Descriptor(
@@ -194,8 +138,8 @@ _GAMEMSG_POSITION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=306,
-  serialized_end=338,
+  serialized_start=254,
+  serialized_end=286,
 )
 
 _GAMEMSG = _descriptor.Descriptor(
@@ -207,7 +151,7 @@ _GAMEMSG = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='mtype', full_name='Player.GameMsg.mtype', index=0,
-      number=1, type=14, cpp_type=8, label=2,
+      number=1, type=13, cpp_type=3, label=2,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -228,7 +172,7 @@ _GAMEMSG = _descriptor.Descriptor(
       options=None),
     _descriptor.FieldDescriptor(
       name='dir', full_name='Player.GameMsg.dir', index=3,
-      number=4, type=14, cpp_type=8, label=1,
+      number=4, type=13, cpp_type=3, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -238,8 +182,6 @@ _GAMEMSG = _descriptor.Descriptor(
   ],
   nested_types=[_GAMEMSG_POSITION, ],
   enum_types=[
-    _GAMEMSG_MSGTYPE,
-    _GAMEMSG_DIRECTION,
   ],
   options=None,
   is_extendable=False,
@@ -247,16 +189,12 @@ _GAMEMSG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=157,
-  serialized_end=435,
+  serialized_end=286,
 )
 
 _STARTMSG.fields_by_name['players'].message_type = _PLAYERIP
 _GAMEMSG_POSITION.containing_type = _GAMEMSG
-_GAMEMSG.fields_by_name['mtype'].enum_type = _GAMEMSG_MSGTYPE
 _GAMEMSG.fields_by_name['pos'].message_type = _GAMEMSG_POSITION
-_GAMEMSG.fields_by_name['dir'].enum_type = _GAMEMSG_DIRECTION
-_GAMEMSG_MSGTYPE.containing_type = _GAMEMSG
-_GAMEMSG_DIRECTION.containing_type = _GAMEMSG
 DESCRIPTOR.message_types_by_name['PlayerIP'] = _PLAYERIP
 DESCRIPTOR.message_types_by_name['StartMsg'] = _STARTMSG
 DESCRIPTOR.message_types_by_name['GameMsg'] = _GAMEMSG

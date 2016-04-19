@@ -1,7 +1,7 @@
 import time, random
-from socket import *
-from select import select
+import socket as sock
 import player_pb2 as pb
+from select import select
 
 from game_utils import GameState, Direction, Message
 
@@ -90,13 +90,11 @@ class RandomNoNetworkLayer(NetworkLayer):
 class NaiveNetworkLayer(NetworkLayer):
     """
     A NetworkLayer implementation that uses simple message passing with
-    no aggreement algorithm for game state. Should show liveness but might
+    no agreement algorithm for game state. Should show liveness but might
     show inconsistencies.
     """
 
-    def __init__(self, game, HOST=None):
-        self.game = game
-        self.message_queue = []
+    def __init__(self, HOST=None):
         self.HOST = HOST
         # These get initialized in start
         self.player = None
@@ -107,39 +105,31 @@ class NaiveNetworkLayer(NetworkLayer):
         """
         Send messages to all of the players
         """
-        print msg.mtype
-        if (msg.mtype == Message.Type.start):
-            network_msg = make_start_netmsg(msg)
-        elif (msg.mtype == Message.Type.kill):
-            network_msg = make_kill_netmsg(msg)
-        elif (msg.mtype == Message.Type.move):
-            network_msg = make_move_netmsg(msg)
-        else:
-            return False
-        for sock in self.socks:
-            sock.send(network_msg.SerializeToString())
+        network_msg = msg.serialize()
+        for i, s in enumerate(self.socks):
+            if s:
+                try:
+                    s.send(network_msg)
+                except sock.error:
+                    print 'lost connection to', i
+                    self.socks[i] = None
         return True
 
     def get_messages(self):
         """
         Get messages from all of the players
         """
+        msgs = []
         net_msg = pb.GameMsg()
-        for sock in self.socks:
-            try:
-                data = sock.recv(1024)
-                if data:
-                    net_msg.ParseFromString(data)
-                    if (net_msg.mtype == pb.GameMsg.START):
-                        self.message_queue.append(start_netmsg_to_msg(net_msg))
-                    elif (net_msg.mtype == pb.GameMsg.KILL):
-                        self.message_queue.append(kill_netmsg_to_msg(net_msg))
-                    elif (net_msg.mtype == pb.GameMsg.MOVE):
-                        self.message_queue.append(move_netmsg_to_msg(net_msg))
-            except IOError:
-                continue
-        print self.message_queue
-        return self.message_queue
+        for s in self.socks:
+            if s:
+                try:
+                    data = s.recv(1024)
+                    if data:
+                        msgs.append(Message.deserialize(data))
+                except IOError:
+                    continue
+        return msgs
 
     def start(self):
         """

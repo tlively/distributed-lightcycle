@@ -1,7 +1,6 @@
 import sys
 import socket as sock
 import player_pb2 as pb
-
 from game_utils import Message, Direction
 
 N_PLAYERS = 4
@@ -18,7 +17,6 @@ def establish_tcp_connections(host_ip):
         nonblocking sockets connected to each player, and a list of
         the four player addresses.
     """
-
     local_player = 0
     player_socks = [None] * N_PLAYERS
     player_addrs = [host_ip] + [None] * (N_PLAYERS - 1)
@@ -39,9 +37,6 @@ def establish_tcp_connections(host_ip):
     player_addrs[0] = host_ip
     for p, addr in other_players:
         player_addrs[p] = addr
-
-    # debug print
-    print 'player', local_player, 'other players', other_players
 
     # check that we received the proper amount of information
     assert len(other_players) == local_player - 1
@@ -88,10 +83,10 @@ def establish_tcp_connections(host_ip):
     self_sock = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
     self_sock.setsockopt(sock.SOL_SOCKET, sock.SO_REUSEADDR, 1)
     self_sock.connect((LOCAL_ADDR, PORT + local_player))
+    listener.accept()
     player_addrs[local_player] = LOCAL_ADDR
     player_socks[local_player] = self_sock
 
-    print 'returning', (local_player, player_socks, player_addrs)
     return (local_player, player_socks, player_addrs)
 
 def coordinate_tcp_connections():
@@ -134,67 +129,11 @@ def coordinate_tcp_connections():
     self_sock = sock.socket(sock.AF_INET, sock.SOCK_STREAM)
     self_sock.setsockopt(sock.SOL_SOCKET, sock.SO_REUSEADDR, 1)
     self_sock.connect((LOCAL_ADDR, PORT))
+    listener.accept()
     player_addrs[0] = LOCAL_ADDR
     player_socks[0] = self_sock
 
-    print 'returning', (0, player_socks, player_addrs)
     return (0, player_socks, player_addrs)
-
-def make_start_netmsg(msg):
-    """
-    Returns a new start protobuf message for the given player.
-    """
-    network_msg = pb.GameMsg()
-    network_msg.mtype = pb.GameMsg.START
-    network_msg.player_no = msg.player
-    return network_msg
-
-def make_move_netmsg(msg):
-    """
-    Returns a new move protobuf message for when the given player moves in the given
-    direction at the given position.
-    """
-    network_msg = pb.GameMsg()
-    network_msg.mtype = pb.GameMsg.MOVE
-    network_msg.player_no = msg.player
-    if msg.direction == Direction.east:
-        network_msg.dir = pb.GameMsg.EAST
-    if msg.direction == Direction.north:
-        network_msg.dir = pb.GameMsg.NORTH
-    if msg.direction == Direction.west:
-        network_msg.dir = pb.GameMsg.WEST
-    if msg.direction == Direction.south:
-        network_msg.dir = pb.GameMsg.SOUTH
-    network_msg.pos.x = msg.pos[0]
-    network_msg.pos.y = msg.pos[1]
-    return network_msg
-
-def make_kill_netmsg(msg):
-    """
-    Returns a new kill protobuf message for the the given player dies.
-    """
-    network_msg = pb.GameMsg()
-    network_msg.mtype = pb.GameMsg.KILL
-    network_msg.player_no = msg.player
-    return network_msg
-
-def start_netmsg_to_msg(net_msg):
-    """
-    Port start protobuf message to native message type.
-    """
-    return Message.start(net_msg.player_no)
-
-def move_netmsg_to_msg(net_msg):
-    """
-    Port move protobuf message to native message type.
-    """
-    return Message.move(net_msg.player_no, [net_msg.pos.x, net_msg.pos.y], net_msg.dir)
-
-def kill_netmsg_to_msg(net_msg):
-    """
-    Port kill protobuf message to native message type.
-    """
-    return Message.kill(player_no)  
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

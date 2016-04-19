@@ -38,6 +38,7 @@ def run_game(game, network, display):
     the game state accordingly. Finally it renders the frame. The game loop
     exits when there are no players left in the game.
     """
+    
     # wait for the game to start
     player = network.start()
     game.start()
@@ -65,7 +66,7 @@ def run_game(game, network, display):
                 if d == None or d == game.state[player][-1]['dir']:
                     continue
                 pos = game.state[player][-1]['pos']
-                msg = Message.move(player, pos, d)
+                msg = Message.move(player, pos, Direction(d))
                 network.broadcast_message(msg)
 
         if player in game.update():
@@ -113,8 +114,8 @@ if __name__ == '__main__':
     # ensure proper usage and parse user input
     if len(sys.argv) > 1:
         # conect to given host
-        network = network(game, sys.argv[1])
+        network = network(sys.argv[1])
     else:
-        network = network(game)
+        network = network()
  
     run_game(game, network, display)

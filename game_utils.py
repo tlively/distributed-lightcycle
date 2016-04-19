@@ -1,5 +1,6 @@
 import sys, random, time, copy
 from enum import Enum
+import player_pb2 as pb
 
 class Direction(Enum):
     """
@@ -45,6 +46,7 @@ class Message(object):
         This constructor should not be called directly. Instead, use
         Message.start, Message.move, or Message.kill.
         """
+        assert direction == None or type(direction) is Direction
         self.player = player
         self.pos = pos
         self.direction = direction
@@ -71,6 +73,40 @@ class Message(object):
         Returns a new kill message for the the given player dies.
         """
         return Message(player, None, None, Message.Type.kill)
+
+    @staticmethod
+    def deserialize(msg_str):
+        """
+        Create a Message from its serialized protobuf form.
+        Args: msg_str - The protobuf string
+        Returns: the deserialized Message
+        """
+        network_msg = pb.GameMsg()
+        network_msg.ParseFromString(msg_str)
+        player = network_msg.player_no
+        pos = None
+        if network_msg.HasField('pos'):
+            pos = (network_msg.pos.x, network_msg.pos.y)
+        direction = None
+        if network_msg.HasField('dir'):
+            direction = Direction(network_msg.dir)
+        mtype = Message.Type(network_msg.mtype)
+        return Message(player, pos, direction, mtype)
+
+    def serialize(self):
+        """
+        Serializes the message as a protobuf.
+        Returns: A string representing the message.
+        """
+        network_msg = pb.GameMsg()
+        network_msg.mtype = self.mtype.value
+        network_msg.player_no = self.player
+        if self.pos:
+            network_msg.pos.x = self.pos[0]
+            network_msg.pos.y = self.pos[1]
+        if self.direction:
+            network_msg.dir = self.direction.value
+        return network_msg.SerializeToString()
     
 class GameState(object):
     """
@@ -199,10 +235,11 @@ class GameState(object):
         Update the last point in the player's history and then create a
         new last point.
         """
-        self.state[player][-1]['pos'] = pos
-        self.state[player][-1]['dir'] = direction
-        self.state[player][-1]['time'] = time
-        self.state[player].append(copy.copy(self.state[player][-1]))
+        if self.state[player]:
+            self.state[player][-1]['pos'] = pos
+            self.state[player][-1]['dir'] = direction
+            self.state[player][-1]['time'] = time
+            self.state[player].append(copy.copy(self.state[player][-1]))
 
     def kill(self, player):
         """
