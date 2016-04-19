@@ -10,3 +10,28 @@ message StartMsg {
 	required uint32 player_no = 2;
 	repeated PlayerIP players = 3;
 }
+
+message GameMsg {
+	enum MsgType {
+    	START = 0;
+    	MOVE = 1;
+    	KILL = 2;
+  	}
+
+  	enum Direction {
+  		EAST = 0;
+    	NORTH = 1;
+   	 	WEST = 2;
+    	SOUTH = 3;
+  	}
+
+  	message Position {
+  		required float x = 1;
+  		required float y = 2;
+  	}
+
+  	required MsgType mtype = 1;
+  	required uint32 player_no = 2;
+  	optional Position pos = 3;
+  	optional Direction dir = 4;
+}

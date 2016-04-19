@@ -5,7 +5,7 @@ import pygame
 from pygame import gfxdraw
 
 # provides the network abstraction for the game
-from network_layers import RandomNoNetworkLayer as network
+from network_layers import NaiveNetworkLayer as network
 
 # manages the state of the game and handles updates
 from game_utils import GameState, Direction, Message
@@ -29,7 +29,7 @@ player_colors = [pygame.Color('red'),
 # The background color of the field
 background_color = pygame.Color('black')
 
-def run_game(player, game, network, display):
+def run_game(game, network, display):
     """
     The main game loop. Waits for the network layer to signal the start of
     the game then runs an iteration of the game loop 60 times per second.
@@ -39,7 +39,7 @@ def run_game(player, game, network, display):
     exits when there are no players left in the game.
     """
     # wait for the game to start
-    network.start()
+    player = network.start()
     game.start()
 
     # main game loop
@@ -87,15 +87,34 @@ def run_game(player, game, network, display):
         sleep_time = max(1 / 60 - (time.time() - start), 0)
         time.sleep(sleep_time) 
 
+    print("GAME OVER")
+    sys.exit()
+
 if __name__ == '__main__':
     """
     Initialize the components of the game and start the game loop.
+    First check that the user is beginning the game properly.
+
+    Currently, the first player to start the game has to input 1
+    as the player number and the IP and PORT to set up the game
+    on. All other players connect with that same IP and PORT, and
+    use player numbers 2-3. No more than 4 players in a game.
+
+    Usage: python main.py [IP]
+
+    (If IP not given, it is assumed you are setting up the connections)
     """
+    # set up game display
     pygame.init()
-    player = 0
     size = (600,600)
     game = GameState(size)
     display = pygame.display.set_mode(size)
-    network = network(player, game)
-    
-    run_game(player, game, network, display)
+
+    # ensure proper usage and parse user input
+    if len(sys.argv) > 1:
+        # conect to given host
+        network = network(game, sys.argv[1])
+    else:
+        network = network(game)
+ 
+    run_game(game, network, display)

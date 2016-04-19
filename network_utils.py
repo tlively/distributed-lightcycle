@@ -2,6 +2,8 @@ import sys
 import socket as sock
 import player_pb2 as pb
 
+from game_utils import Message, Direction
+
 N_PLAYERS = 4
 PORT = 2620
 LOCAL_ADDR = sock.gethostbyname(sock.gethostname())
@@ -137,7 +139,62 @@ def coordinate_tcp_connections():
 
     print 'returning', (0, player_socks, player_addrs)
     return (0, player_socks, player_addrs)
-    
+
+def make_start_netmsg(msg):
+    """
+    Returns a new start protobuf message for the given player.
+    """
+    network_msg = pb.GameMsg()
+    network_msg.mtype = pb.GameMsg.START
+    network_msg.player_no = msg.player
+    return network_msg
+
+def make_move_netmsg(msg):
+    """
+    Returns a new move protobuf message for when the given player moves in the given
+    direction at the given position.
+    """
+    network_msg = pb.GameMsg()
+    network_msg.mtype = pb.GameMsg.MOVE
+    network_msg.player_no = msg.player
+    if msg.direction == Direction.east:
+        network_msg.dir = pb.GameMsg.EAST
+    if msg.direction == Direction.north:
+        network_msg.dir = pb.GameMsg.NORTH
+    if msg.direction == Direction.west:
+        network_msg.dir = pb.GameMsg.WEST
+    if msg.direction == Direction.south:
+        network_msg.dir = pb.GameMsg.SOUTH
+    network_msg.pos.x = msg.pos[0]
+    network_msg.pos.y = msg.pos[1]
+    return network_msg
+
+def make_kill_netmsg(msg):
+    """
+    Returns a new kill protobuf message for the the given player dies.
+    """
+    network_msg = pb.GameMsg()
+    network_msg.mtype = pb.GameMsg.KILL
+    network_msg.player_no = msg.player
+    return network_msg
+
+def start_netmsg_to_msg(net_msg):
+    """
+    Port start protobuf message to native message type.
+    """
+    return Message.start(net_msg.player_no)
+
+def move_netmsg_to_msg(net_msg):
+    """
+    Port move protobuf message to native message type.
+    """
+    return Message.move(net_msg.player_no, [net_msg.pos.x, net_msg.pos.y], net_msg.dir)
+
+def kill_netmsg_to_msg(net_msg):
+    """
+    Port kill protobuf message to native message type.
+    """
+    return Message.kill(player_no)  
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:
