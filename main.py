@@ -51,8 +51,6 @@ def run_game(game, network, display):
             if msg.mtype == Message.Type.move:
                 game.move(msg.player, msg.pos, msg.direction, start)
             elif msg.mtype == Message.Type.kill:
-                # TODO: change GameState::update to only check local
-                # player's death so that these messages are important
                 game.kill(msg.player)
 
         # handle local events
@@ -69,7 +67,8 @@ def run_game(game, network, display):
                 msg = Message.move(player, pos, Direction(d))
                 network.broadcast_message(msg)
 
-        if player in game.update():
+        if game.update(player):
+            game.kill(player)
             network.broadcast_message(Message.kill(player))
 
         # rendering
@@ -108,7 +107,8 @@ if __name__ == '__main__':
     # set up game display
     pygame.init()
     size = (600,600)
-    game = GameState(size)
+    speed = 100
+    game = GameState(size,speed)
     display = pygame.display.set_mode(size)
 
     # ensure proper usage and parse user input

@@ -112,18 +112,26 @@ class GameState(object):
     """
     Internal representation of game state
     """
-    start_pos = [(10, 10), (590, 10),
-                 (590, 590), (10, 590)]
-    
-    start_dir = [Direction.east, Direction.south,
-                 Direction.west, Direction.north]
-
-    def __init__(self, size):
+    def __init__(self, size=(600,600), speed=100):
+        """
+        Initialize GameState object.
+        Args:
+            size - a length,width tuple of the game board size
+            speed - the speed of the players in px/sec
+        """
         self.players_left = [0,1,2,3]
+        
+        start_pos = [(10, 10), (size[0]-10, 10),
+                     (size[0]-10, size[0]-10), (10, size[0]-10)]
+        
+        start_dir = [Direction.east, Direction.south,
+                     Direction.west, Direction.north]
+
         self.state = [[{'pos': p, 'dir': d}] for p,d in
-                      zip(GameState.start_pos, GameState.start_dir)]
+                      zip(start_pos, start_dir)]
+        
         self.width, self.height = size
-        self.speed = 100
+        self.speed = speed
 
     def start(self):
         """
@@ -135,18 +143,19 @@ class GameState(object):
             self.state[p].append(copy.copy(self.state[p][0]))
             self.state[p][-1]['time'] = start_time
 
-    def update(self):
+    def update(self, player):
         """
-        Updates the game state by moving each player's position forward by
-        1/60 of a second.
+        Updates the game state by moving each player's position forward.
+        Args:
+            player - the local player number
         Returns:
-            A list of players who died in this update step.
-
-        TODO: only check if the local player died and return a boolean.
-        TODO: check collision only with the last frame's movement, not the
-            whole last leg.
+            True if the local player should die, False otherwise
         """
         cur_time = time.time()
+
+        last_pos = None
+        if player in self.players_left:
+            last_pos = self.state[player][-1]['pos']
 
         # update positions
         for p in self.players_left:
@@ -156,36 +165,35 @@ class GameState(object):
             self.state[p][-1]['pos'] = d.extrapolate(pos, (cur_time - t) * self.speed)
             self.state[p][-1]['time'] = cur_time
 
-        # check for death
-        dead_players = []
-        for p in self.players_left:
-            curpos = self.state[p][-1]['pos']
-            lastpos = self.state[p][-2]['pos']
+        # do not do collision detection if already dead
+        if player not in self.players_left:
+            return False
 
-            # check bounds
-            if curpos[0] < 0 or curpos[1] < 0 or \
-               curpos[0] >= self.width or curpos[1] >= self.height:
-                dead_players.append(p)
-                continue
+        # check for local player death
+        cur_pos = self.state[player][-1]['pos']
 
-            # check trail collision
-            dead = False
-            for p2 in self.players_left:
-                r = range(len(self.state[p2])-1)
-                if p == p2:
-                    r = range(len(self.state[p2])-2)
-                for i in r:
-                    a = self.state[p2][i]['pos']
-                    b = self.state[p2][i+1]['pos']
-                    if self._intersect(a, b, lastpos, curpos):
-                        dead = True
-                        dead_players.append(p)
-                        break
-                if dead:
-                    break
-        for p in dead_players:
-            self.kill(p)
-        return dead_players
+        # check b{ounds
+        if cur_pos[0] < 0 or cur_pos[1] < 0 or \
+           cur_pos[0] >= self.width or cur_pos[1] >= self.height:
+            print 'bounds'
+            return True
+
+        # check trail collision
+        for p2 in self.players_left:
+            r = range(len(self.state[p2])-1)
+            
+            # modify range for colliding with self
+            if player == p2:
+                r = range(len(self.state[p2])-2)
+
+            # test collision with each segment
+            for i in r:
+                a = self.state[p2][i]['pos']
+                b = self.state[p2][i+1]['pos']
+                if self._intersect(a, b, last_pos, cur_pos):
+                    return True
+        # don't die
+        return False
 
     def _intersect(self, a1, a2, b1, b2):
         """
