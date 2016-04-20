@@ -70,7 +70,7 @@ class Message(object):
     @staticmethod
     def kill(player):
         """
-        Returns a new kill message for the the given player dies.
+        Returns a new kill message for when the given player dies.
         """
         return Message(player, None, None, Message.Type.kill)
 
