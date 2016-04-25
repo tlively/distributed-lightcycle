@@ -5,7 +5,7 @@ import pygame
 from pygame import gfxdraw
 
 # provides the network abstraction for the game
-from network_layers import NaiveNetworkLayer as network
+from network_layers import PartTimeNetworkLayer as network
 
 # manages the state of the game and handles updates
 from game_utils import GameState, Direction, Message
@@ -38,7 +38,7 @@ def run_game(game, network, display):
     the game state accordingly. Finally it renders the frame. The game loop
     exits when there are no players left in the game.
     """
-    
+
     # wait for the game to start
     player = network.start()
     game.start()
@@ -48,6 +48,7 @@ def run_game(game, network, display):
         start = time.time()
         # handle network input
         for msg in network.get_messages():
+            print "Got message", msg.mtype, "in ", player
             if msg.mtype == Message.Type.move:
                 game.move(msg.player, msg.pos, msg.direction, start)
             elif msg.mtype == Message.Type.kill:
@@ -85,9 +86,10 @@ def run_game(game, network, display):
 
         # try to maintain 60 fps
         sleep_time = max(1 / 60 - (time.time() - start), 0)
-        time.sleep(sleep_time) 
+        time.sleep(sleep_time)
 
     print("GAME OVER")
+    network.stop()
     sys.exit()
 
 if __name__ == '__main__':
@@ -117,5 +119,5 @@ if __name__ == '__main__':
         network = network(sys.argv[1])
     else:
         network = network()
- 
+
     run_game(game, network, display)

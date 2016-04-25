@@ -1,0 +1,21 @@
+package Paxosmsg;
+
+enum type {
+  PREPARE = 1;
+  PROMISE = 2;
+  ACCEPT = 3;
+  ACCEPTED = 4;
+  NACK_PREPARE = 5;
+  NACK_ACCEPT = 6;
+  HEARTBEAT = 7;
+  REQUEST = 8;
+}
+
+message msg {
+  required type type = 1;
+  required int32 from_uid = 2;
+  optional string proposal_id = 3;
+  optional string previous_id = 4;
+  optional string value = 5;
+  required int32 instance = 6;
+}
