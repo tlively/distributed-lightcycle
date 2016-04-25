@@ -166,8 +166,7 @@ class PartTimeNetworkLayer(NetworkLayer):
         """
         Send messages to all of the players
         """
-        with self.lock:
-            self.outbox.append(msg.serialize())
+        self.outbox.append(msg.serialize())
 
     def _broadcast_message(self, msg):
         """
@@ -200,10 +199,9 @@ class PartTimeNetworkLayer(NetworkLayer):
         """
         Get accepted messages from all of the players
         """
-        with self.lock:
-            inbox = self.inbox
-            self.inbox = []
-        if inbox: print inbox, map(Message.deserialize, inbox)
+        self.do_paxos()
+        inbox = self.inbox
+        self.inbox = []
         return map(Message.deserialize, inbox)
 
     def _get_messages(self):
@@ -243,7 +241,7 @@ class PartTimeNetworkLayer(NetworkLayer):
 
     def call_part_time_parliament_to_order(self):
         """
-        Initialize Paxos algorithm, with self as Node # uid, and spawn its thread
+        Initialize Paxos algorithm, with self as Node # uid
         """
         import paxos.functional
         def status(*args):
@@ -301,10 +299,8 @@ class PartTimeNetworkLayer(NetworkLayer):
                 '''
                 status("Accepted", proposal_id, value)
                 if proposal_id.uid == self.node.node_uid:
-                    with self.lock:
-                        self.outbox = self.outbox[len(value):]
-                with self.lock:
-                    self.inbox.extend(value)
+                    self.outbox = self.outbox[len(value):]
+                self.inbox.extend(value)
                 self.incr_instance = True
 
             def send_prepare_nack(_self, to_uid, proposal_id, promised_id):
@@ -381,52 +377,49 @@ class PartTimeNetworkLayer(NetworkLayer):
         self.node = paxos.functional.HeartbeatNode(self.messenger, self.player, len(self.socks)/2 + 1)
         self.inbox = []
         self.outbox = []
-        self.running = True
         self.instance = 1
         self.incr_instance = False
 
         def do_paxos(self):
             """
-            Main Paxos loop, runs in own thread
+            Main Paxos loop
             """
-            while self.running:
-                for s,msg in self._get_messages():
-                    proposal_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.proposal_id)))
-                    if msg.previous_id:
-                            previous_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.previous_id)))
-                    self.node.next_proposal_number = max(self.node.next_proposal_number, proposal_id.number + 1)
-                    if msg.type == pxb.PREPARE:
-                        self.node.recv_prepare(msg.from_uid, proposal_id)
-                    elif msg.type == pxb.PROMISE:
-                        previous_id = None
-                        accepted_value = cPickle.loads(str(msg.value))
-                        self.node.recv_promise(msg.from_uid, proposal_id, previous_id, accepted_value)
-                    elif msg.type == pxb.ACCEPT:
-                        self.node.recv_accept_request(msg.from_uid, proposal_id, cPickle.loads(str(msg.value)))
-                    elif msg.type == pxb.ACCEPTED:
-                        self.node.recv_accepted(msg.from_uid, proposal_id, cPickle.loads(str(msg.value)))
-                    elif msg.type == pxb.NACK_PREPARE:
-                        self.node.recv_prepare_nack(msg.from_uid, proposal_id, previous_id)
-                    elif msg.type == pxb.NACK_ACCEPT:
-                        self.node.recv_accept_nack(msg.from_uid, proposal_id, previous_id)
-                    elif msg.type == pxb.HEARTBEAT:
-                        self.node.recv_heartbeat(msg.from_uid, proposal_id)
-                    else:
-                        raise NotImplementedError
-                if not self.incr_instance:
-                    with self.lock:
-                        outbox = self.outbox
-                    if outbox and not self.node.proposed_value:
-                        self.node.proposed_value = outbox
-                        self.node.prepare()
-                    self.node.persisted()
-                    if self.node.leader and self.node.next_hb <= time.time():
-                        self.node.pulse()
+            for s,msg in self._get_messages():
+                proposal_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.proposal_id)))
+                if msg.previous_id:
+                        previous_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.previous_id)))
+                self.node.next_proposal_number = max(self.node.next_proposal_number, proposal_id.number + 1)
+                if msg.type == pxb.PREPARE:
+                    self.node.recv_prepare(msg.from_uid, proposal_id)
+                elif msg.type == pxb.PROMISE:
+                    previous_id = None
+                    accepted_value = cPickle.loads(str(msg.value))
+                    self.node.recv_promise(msg.from_uid, proposal_id, previous_id, accepted_value)
+                elif msg.type == pxb.ACCEPT:
+                    self.node.recv_accept_request(msg.from_uid, proposal_id, cPickle.loads(str(msg.value)))
+                elif msg.type == pxb.ACCEPTED:
+                    self.node.recv_accepted(msg.from_uid, proposal_id, cPickle.loads(str(msg.value)))
+                elif msg.type == pxb.NACK_PREPARE:
+                    self.node.recv_prepare_nack(msg.from_uid, proposal_id, previous_id)
+                elif msg.type == pxb.NACK_ACCEPT:
+                    self.node.recv_accept_nack(msg.from_uid, proposal_id, previous_id)
+                elif msg.type == pxb.HEARTBEAT:
+                    self.node.recv_heartbeat(msg.from_uid, proposal_id)
                 else:
-                    self.node = paxos.functional.HeartbeatNode(self.messenger, self.player, len(self.socks)/2 + 1)
-                    self.instance += 1
-                    self.incr_instance = False
+                    raise NotImplementedError
+            if not self.incr_instance:
+                if self.outbox and not self.node.proposed_value:
+                    self.node.proposed_value = self.outbox
+                    self.node.prepare()
+                self.node.persisted()
+                if self.node.leader and self.node.next_hb <= time.time():
+                    self.node.pulse()
+            else:
+                self.node = paxos.functional.HeartbeatNode(self.messenger, self.player, len(self.socks)/2 + 1)
+                self.instance += 1
+                self.incr_instance = False
 
-        import thread
-        self.lock = thread.allocate_lock()
-        self.paxos = thread.start_new_thread(do_paxos, tuple([self]))
+        self.paxos = do_paxos
+
+    def do_paxos(self):
+        return self.paxos(self)
