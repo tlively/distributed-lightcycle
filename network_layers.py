@@ -213,12 +213,13 @@ class PartTimeNetworkLayer(NetworkLayer):
             if s:
                 try:
                     data = s.recv(1024)
-                    if data:
+                    while data:
                         msg = pxb.msg()
                         msg.ParseFromString(data)
                         if msg.instance > self.instance:
                             print "OLD"
                         msgs.append((s,msg))
+                        data = s.recv(1024)
                 except IOError:
                     continue
         return msgs
@@ -415,7 +416,8 @@ class PartTimeNetworkLayer(NetworkLayer):
                 if self.node.leader and self.node.next_hb <= time.time():
                     self.node.pulse()
             else:
-                self.node = paxos.functional.HeartbeatNode(self.messenger, self.player, len(self.socks)/2 + 1)
+                self.node = paxos.functional.HeartbeatNode(self.messenger, self.player, len(self.socks)/2 + 1, self.node.leader_uid)
+                self.node.next_hb = time.time()
                 self.instance += 1
                 self.incr_instance = False
 
