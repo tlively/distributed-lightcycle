@@ -1,4 +1,4 @@
-import sys
+import sys, random, struct
 import socket as sock
 import player_pb2 as pb
 from game_utils import Message, Direction
@@ -23,6 +23,27 @@ class SelfLoopSocket(object):
             buf = self.msgs
             self.msgs = ''
             return buf
+
+class WrappedSocket(object):
+    """
+    Like a socket, but reads always return an individual message (or nothing)
+    """
+    def __init__(self, socket, failprob=0):
+        self.socket = socket
+        self.failprob = failprob
+
+    def send(self, msg):
+        if random.random() > self.failprob:
+            self.socket.send(struct.pack("!Q", len(msg)) + msg)
+
+    def recv(self, buf_len):
+        data = self.socket.recv(8)
+        if not data: return
+        assert len(data) == 8
+        msglen = struct.unpack("!Q", data)[0]
+        data = self.socket.recv(msglen)
+        assert len(data) == msglen
+        return data
 
 def establish_tcp_connections(host_ip):
     """
@@ -102,6 +123,8 @@ def establish_tcp_connections(host_ip):
     player_addrs[local_player] = LOCAL_ADDR
     player_socks[local_player] = SelfLoopSocket()
 
+    player_socks = map(WrappedSocket, player_socks)
+
     return (local_player, player_socks, player_addrs)
 
 def coordinate_tcp_connections():
@@ -113,7 +136,7 @@ def coordinate_tcp_connections():
         the four player addresses.
     """
     print 'hosting at', LOCAL_ADDR
-    
+
     player_socks = [None] * N_PLAYERS
     player_addrs = [None] * N_PLAYERS
     # Set up the socket for everyone to connect to
@@ -145,6 +168,8 @@ def coordinate_tcp_connections():
     # create self loop
     player_addrs[0] = LOCAL_ADDR
     player_socks[0] = SelfLoopSocket()
+
+    player_socks = map(WrappedSocket, player_socks)
 
     return (0, player_socks, player_addrs)
 
