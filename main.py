@@ -44,7 +44,9 @@ def run_game(game, network, display):
     game.start()
 
     # main game loop
-    while len(game.players_left) > 0:
+    running = True
+    send_exit = True
+    while running:
         start = time.time()
         # handle network input
         for msg in network.get_messages():
@@ -53,6 +55,8 @@ def run_game(game, network, display):
                 game.move(msg.player, msg.pos, msg.direction, start)
             elif msg.mtype == Message.Type.kill:
                 game.kill(msg.player)
+            elif msg.mtype == Message.Type.exit:
+                running = False
 
         # handle local events
         for event in pygame.event.get():
@@ -83,6 +87,11 @@ def run_game(game, network, display):
                              int(x2), int(y2),
                              player_colors[p])
         pygame.display.flip()
+
+        # exiting
+        if len(game.players_left) == 0 and send_exit:
+            send_exit = False
+            network.broadcast_message(Message.exit(player))
 
         # try to maintain 60 fps
         sleep_time = max(1 / 60 - (time.time() - start), 0)

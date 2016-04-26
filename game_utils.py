@@ -30,7 +30,7 @@ class Direction(Enum):
             return (loc[0], loc[1] + dist)
         else:
             assert False
-            
+
 class Message(object):
     """
     The Message class encapsulates all of the inter-client communication
@@ -40,6 +40,7 @@ class Message(object):
         start = 1
         move = 2
         kill = 3
+        exit = 4
 
     def __init__(self, player, pos, direction, mtype):
         """
@@ -58,7 +59,7 @@ class Message(object):
         Returns a new start message for the given player.
         """
         return Message(player, None, None, Message.Type.start)
-    
+
     @staticmethod
     def move(player, pos, direction):
         """
@@ -73,6 +74,13 @@ class Message(object):
         Returns a new kill message for when the given player dies.
         """
         return Message(player, None, None, Message.Type.kill)
+
+    @staticmethod
+    def exit(player):
+        """
+        Returns a new exit message for when all players die.
+        """
+        return Message(player, None, None, Message.Type.exit)
 
     @staticmethod
     def deserialize(msg_str):
@@ -107,7 +115,7 @@ class Message(object):
         if self.direction:
             network_msg.dir = self.direction.value
         return network_msg.SerializeToString()
-    
+
 class GameState(object):
     """
     Internal representation of game state
@@ -120,16 +128,16 @@ class GameState(object):
             speed - the speed of the players in px/sec
         """
         self.players_left = [0,1,2,3]
-        
+
         start_pos = [(10, 10), (size[0]-10, 10),
                      (size[0]-10, size[0]-10), (10, size[0]-10)]
-        
+
         start_dir = [Direction.east, Direction.south,
                      Direction.west, Direction.north]
 
         self.state = [[{'pos': p, 'dir': d}] for p,d in
                       zip(start_pos, start_dir)]
-        
+
         self.width, self.height = size
         self.speed = speed
 
@@ -181,7 +189,7 @@ class GameState(object):
         # check trail collision
         for p2 in self.players_left:
             r = range(len(self.state[p2])-1)
-            
+
             # modify range for colliding with self
             if player == p2:
                 r = range(len(self.state[p2])-2)
