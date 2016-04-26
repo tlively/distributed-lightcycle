@@ -19,7 +19,7 @@ _sym_db = _symbol_database.Default()
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='paxosmsg.proto',
   package='Paxosmsg',
-  serialized_pb=_b('\n\x0epaxosmsg.proto\x12\x08Paxosmsg\"\x80\x01\n\x03msg\x12\x1c\n\x04type\x18\x01 \x02(\x0e\x32\x0e.Paxosmsg.type\x12\x10\n\x08\x66rom_uid\x18\x02 \x02(\x05\x12\x13\n\x0bproposal_id\x18\x03 \x01(\t\x12\x13\n\x0bprevious_id\x18\x04 \x01(\t\x12\r\n\x05value\x18\x05 \x01(\t\x12\x10\n\x08instance\x18\x06 \x02(\x05*y\n\x04type\x12\x0b\n\x07PREPARE\x10\x01\x12\x0b\n\x07PROMISE\x10\x02\x12\n\n\x06\x41\x43\x43\x45PT\x10\x03\x12\x0c\n\x08\x41\x43\x43\x45PTED\x10\x04\x12\x10\n\x0cNACK_PREPARE\x10\x05\x12\x0f\n\x0bNACK_ACCEPT\x10\x06\x12\r\n\tHEARTBEAT\x10\x07\x12\x0b\n\x07REQUEST\x10\x08')
+  serialized_pb=_b('\n\x0epaxosmsg.proto\x12\x08Paxosmsg\"\x80\x01\n\x03msg\x12\x1c\n\x04type\x18\x01 \x02(\x0e\x32\x0e.Paxosmsg.type\x12\x10\n\x08\x66rom_uid\x18\x02 \x02(\x05\x12\x13\n\x0bproposal_id\x18\x03 \x01(\t\x12\x13\n\x0bprevious_id\x18\x04 \x01(\t\x12\r\n\x05value\x18\x05 \x01(\t\x12\x10\n\x08instance\x18\x06 \x02(\x05*\x86\x01\n\x04type\x12\x0b\n\x07PREPARE\x10\x01\x12\x0b\n\x07PROMISE\x10\x02\x12\n\n\x06\x41\x43\x43\x45PT\x10\x03\x12\x0c\n\x08\x41\x43\x43\x45PTED\x10\x04\x12\x10\n\x0cNACK_PREPARE\x10\x05\x12\x0f\n\x0bNACK_ACCEPT\x10\x06\x12\r\n\tHEARTBEAT\x10\x07\x12\x0b\n\x07REQUEST\x10\x08\x12\x0b\n\x07REFUSAL\x10\t')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -61,11 +61,15 @@ _TYPE = _descriptor.EnumDescriptor(
       name='REQUEST', index=7, number=8,
       options=None,
       type=None),
+    _descriptor.EnumValueDescriptor(
+      name='REFUSAL', index=8, number=9,
+      options=None,
+      type=None),
   ],
   containing_type=None,
   options=None,
-  serialized_start=159,
-  serialized_end=280,
+  serialized_start=160,
+  serialized_end=294,
 )
 _sym_db.RegisterEnumDescriptor(_TYPE)
 
@@ -78,6 +82,7 @@ NACK_PREPARE = 5
 NACK_ACCEPT = 6
 HEARTBEAT = 7
 REQUEST = 8
+REFUSAL = 9
 
 
 

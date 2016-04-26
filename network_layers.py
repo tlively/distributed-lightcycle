@@ -299,8 +299,6 @@ class PartTimeNetworkLayer(NetworkLayer):
                 Called when a resolution is reached
                 '''
                 status("Accepted", proposal_id, value)
-                if proposal_id.uid == self.node.node_uid:
-                    self.outbox = self.outbox[len(value):]
                 self.inbox.extend(value)
                 self.incr_instance = True
 
@@ -386,10 +384,12 @@ class PartTimeNetworkLayer(NetworkLayer):
             Main Paxos loop
             """
             for s,msg in self._get_messages():
-                proposal_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.proposal_id)))
+                if msg.proposal_id:
+                    proposal_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.proposal_id)))
+                    self.node.next_proposal_number = max(self.node.next_proposal_number, proposal_id.number + 1)
                 if msg.previous_id:
                         previous_id = paxos.functional.ProposalID._make(cPickle.loads(str(msg.previous_id)))
-                self.node.next_proposal_number = max(self.node.next_proposal_number, proposal_id.number + 1)
+
                 if msg.type == pxb.PREPARE:
                     self.node.recv_prepare(msg.from_uid, proposal_id)
                 elif msg.type == pxb.PROMISE:
@@ -406,12 +406,25 @@ class PartTimeNetworkLayer(NetworkLayer):
                     self.node.recv_accept_nack(msg.from_uid, proposal_id, previous_id)
                 elif msg.type == pxb.HEARTBEAT:
                     self.node.recv_heartbeat(msg.from_uid, proposal_id)
+                elif msg.type == pxb.REQUEST:
+                    if self.node.leader:
+                        self.outbox.extend(cPickle.loads(str(msg.value)))
+                    else:
+                        status("Dropping request")
                 else:
                     raise NotImplementedError
+
             if not self.incr_instance:
-                if self.outbox and not self.node.proposed_value:
-                    self.node.proposed_value = self.outbox
-                    self.node.prepare()
+                if self.outbox:
+                    if self.node.leader and not self.node.proposed_value:
+                        self.node.proposed_value = self.outbox
+                        self.node.prepare()
+                    elif not self.node.leader:
+                        msg = pxb.msg()
+                        msg.type = pxb.REQUEST
+                        msg.value = cPickle.dumps(self.outbox)
+                        self.outbox = []
+                        self._broadcast_message(msg)
                 self.node.persisted()
                 if self.node.leader and self.node.next_hb <= time.time():
                     self.node.pulse()
@@ -422,6 +435,8 @@ class PartTimeNetworkLayer(NetworkLayer):
                 self.incr_instance = False
 
         self.paxos = do_paxos
+        if self.player == 1:
+            self.node.prepare()
 
     def do_paxos(self):
         return self.paxos(self)

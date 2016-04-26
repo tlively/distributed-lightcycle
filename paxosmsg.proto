@@ -9,6 +9,7 @@ enum type {
   NACK_ACCEPT = 6;
   HEARTBEAT = 7;
   REQUEST = 8;
+  REFUSAL = 9;
 }
 
 message msg {
