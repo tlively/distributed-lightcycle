@@ -2,13 +2,12 @@ import sys, time
 
 # Pygame is used to create the game window and render the game
 import pygame
-from pygame import gfxdraw
 
 # provides the network abstraction for the game
 from network_layers import PartTimeNetworkLayer as network
 
 # manages the state of the game and handles updates
-from game_utils import GameState, Direction, Message
+from game_utils import GameState, Direction, Message, line
 
 # Map keyboard input to directions
 keyboard_directions = {pygame.K_w: Direction.north,
@@ -82,10 +81,10 @@ def run_game(game, network, display):
             for i in range(len(game.state[p])-1):
                 x1, y1 = game.state[p][i]['pos']
                 x2, y2 = game.state[p][i+1]['pos']
-                gfxdraw.line(display,
-                             int(x1), int(y1),
-                             int(x2), int(y2),
-                             player_colors[p])
+                line(display,
+                     int(x1), int(y1),
+                     int(x2), int(y2),
+                     player_colors[p], p == player)
         pygame.display.flip()
 
         # exiting
