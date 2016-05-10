@@ -4,11 +4,14 @@ import player_pb2 as pb
 import paxosmsg_pb2 as pxb
 from select import select
 import cPickle
+import time
 
 from game_utils import GameState, Direction, Message
 
 # handles setting up and using the network interfacing
 from network_utils import *
+
+message_dict = {}
 
 class NetworkLayer(object):
     """
@@ -166,6 +169,7 @@ class PartTimeNetworkLayer(NetworkLayer):
         """
         Send messages to all of the players
         """
+        message_dict[(msg.pos, msg.direction)] = time.time()
         self.outbox.append(msg.serialize())
 
     def _broadcast_message(self, msg):
@@ -299,6 +303,10 @@ class PartTimeNetworkLayer(NetworkLayer):
                 Called when a resolution is reached
                 '''
                 status("Accepted", proposal_id, value)
+                for v in value:
+                    v = Message.deserialize(v)
+                    if (v.pos, v.direction) in message_dict:
+                        print "Time elapsed for accept", time.time() - message_dict[(v.pos, v.direction)]
                 self.inbox.extend(value)
                 self.incr_instance = True
 
