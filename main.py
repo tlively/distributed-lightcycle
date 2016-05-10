@@ -4,7 +4,7 @@ import sys, time
 import pygame
 
 # provides the network abstraction for the game
-from network_layers import PartTimeNetworkLayer as network
+from network_layers import NaiveNetworkLayer as network
 
 # manages the state of the game and handles updates
 from game_utils import GameState, Direction, Message, line
@@ -43,6 +43,10 @@ def run_game(game, network, display):
     game.start()
 
     # main game loop
+    run_time_max = 0
+    run_time_min = 1
+    run_time_total = 0
+    frames = 0
     running = True
     send_exit = True
     while running:
@@ -93,11 +97,22 @@ def run_game(game, network, display):
             network.broadcast_message(Message.exit(player))
 
         # try to maintain 60 fps
-        sleep_time = max(1 / 60 - (time.time() - start), 0)
+        run_time = time.time() - start
+        if run_time < run_time_min:
+            run_time_min = run_time
+        if run_time > run_time_max:
+            run_time_max = run_time
+        run_time_total += run_time
+        frames += 1
+        sleep_time = max(1 / 60 - run_time, 0)
         time.sleep(sleep_time)
 
     print("GAME OVER")
     network.stop()
+
+    print 'Effective frame rate:', frames/run_time_total
+    print 'Max frame rate:', 1/run_time_min
+    print 'Min frame rate:', 1/run_time_max
     sys.exit()
 
 if __name__ == '__main__':

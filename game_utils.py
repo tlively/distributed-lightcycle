@@ -266,7 +266,7 @@ class GameState(object):
             self.players_left.remove(player)
             self.state[player] = []
 
-def draw_dashed_line(surf, x1, y1, x2, y2, color, width=1, dash_length=10):
+def draw_dashed_line(surf, x1, y1, x2, y2, color, width=1, dash_length=2):
     dl = dash_length
 
     if (x1 == x2):

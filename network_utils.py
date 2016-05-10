@@ -28,7 +28,7 @@ class WrappedSocket(object):
     """
     Like a socket, but reads always return an individual message (or nothing)
     """
-    def __init__(self, socket, failprob=0):
+    def __init__(self, socket, failprob=.2):
         self.socket = socket
         self.failprob = failprob
 
