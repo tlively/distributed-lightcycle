@@ -1,3 +1,11 @@
+"""
+main.py
+
+Contains the main control flow of the game. It handles the user input
+that starts the game, sets up the game window, sets up the networking
+layer, and runs the main game loop.
+"""
+
 import sys, time
 
 # Pygame is used to create the game window and render the game

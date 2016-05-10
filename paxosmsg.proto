@@ -1,3 +1,7 @@
+// paxosmsg.proto
+// The protocol buffer structures used to create paxosmsg_pb2.py, which is
+// used for serializing and deserializing paxos messages to send over the wire
+
 package Paxosmsg;
 
 enum type {

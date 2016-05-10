@@ -1,3 +1,19 @@
+"""
+game_utils.py
+
+This contains utility functions and classes necessary for running the
+game. The three classes defined in the file are Direction, Message
+and Game State. Direction defines the cardinal directions and allows
+a player to extrapolate in a given direction given a location. Message
+encapsulates the inter-client communication. It has multiple Message
+types that can be created and serialized and deserialized for sending
+over the wire via protocol buffers. Game State is an object that has
+the state of the game that each of the players holds. It has various
+information about the state of the board and methods for initializing
+the game and running it. There are three other functions in
+game_utils.py that are used for drawing the lines for the game.
+"""
+
 import sys, random, time, copy, math
 from enum import Enum
 import player_pb2 as pb

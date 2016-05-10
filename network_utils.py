@@ -1,3 +1,16 @@
+"""
+network_utils.py
+
+This contains the utility classes and functions for network
+operations. We defined two different socket types that are used in the
+network layers. These are the SelfLoopSocket and WrappedSocket, which
+are used for getting your own moves and getting an individual
+message. The failure rate is one of the arguments to WrappedSocket and
+can be defined in the class. The functions establish_tcp_connections
+and coordinate_tcp_connections are used for the initial setup of the
+TCP connections for the game.
+"""
+
 import sys, random, struct
 import socket as sock
 import player_pb2 as pb
@@ -28,7 +41,7 @@ class WrappedSocket(object):
     """
     Like a socket, but reads always return an individual message (or nothing)
     """
-    def __init__(self, socket, failprob=.2):
+    def __init__(self, socket, failprob=0):
         self.socket = socket
         self.failprob = failprob
 

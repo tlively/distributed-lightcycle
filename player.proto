@@ -1,3 +1,7 @@
+// player.proto
+// The protocol buffer structures used to create player_pb2.py, which is
+// used for serializing and deserializing messages to send over the wire
+
 package Player;
 
 message PlayerIP {
